@@ -158,7 +158,7 @@ If your server might be using a couple of different IPs, e.g. the server is runn
 While intended to run on a secure home LAN, I have added some security measures in case I run the server on a laptop and would want to use it while on someone ease's LAN.
 
 - The server is HTTPS only, so the communication is SSL encrypted.
-- The server relies on Python providing secure SSL defaults, [which it does](https://docs.python.org/3/library/ssl.html#cipher-selection), as long as keep python up-to-date enough.
+- The server relies on Python providing secure SSL defaults, [which it does](https://docs.python.org/3/library/ssl.html#cipher-selection), as long as you keep python up-to-date enough.
 - Since it's intended for home LAN usage, the server uses a self-signed SSL certificate.
 - The server authenticates the client via username:password Basic HTTP Authentication, preventing unauthorized parties opening videos on your PC. Failed attempts are rate limited to 5/hour.
 - The client authenticates the server against the SSL certificate, preventing MTIM and sharing the username:password & the video URL with unintended parties in general.
