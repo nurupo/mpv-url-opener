@@ -1,0 +1,7 @@
+{
+    "MPV_BIN_PATH": "/usr/bin/mpv",
+    "MPV_EXTRA_ARGS": [],
+    "HTTP_AUTH_DB": {
+        "device-username": "device-password"
+    }
+}
