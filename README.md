@@ -24,7 +24,7 @@ Writing a single `curl` command is sure easier than writing an Android app!
 
 ### PC-side (server-side)
 
-On PC we run a simple HTTP server app that listens for POST requests and opens links in mpv.
+On PC we run a simple https server app that listens for POST requests and opens links in mpv.
 
 ## Setup
 
