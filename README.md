@@ -173,6 +173,13 @@ I don't run a proxy server on my PC, so I wrote the application with the idea th
 As such, running behind a proxy server is not supported, though it could be done with some minimal modifications.
 Some of the modifications would be: removing the SSL support from the app, delegating SSL handling to the proxy instead, and modifying the rate limiting code, as it would see the requests as coming from the IP of the proxy server (e.g. 127.0.0.1), instead of users' IP addresses.
 
+## Zombie processes
+
+mpv processes spawned by the server will remain as zombies after mpv is closed.
+There is no real harm in them remaining, they don't use up RAM or other resources.
+
+The zombie processes get removed whenever the server spawns mpv (at least in [the CPython implementation](https://github.com/python/cpython/blob/3.9/Lib/subprocess.py#L244-L261)) or when the server is restarted (`systemctl --user restart mpv-url-opener.service`).
+
 ## License
 
 AGPL-3.0-only
