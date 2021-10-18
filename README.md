@@ -137,7 +137,7 @@ Create `termux-url-opener`:
 
 ```sh
 echo '#!/data/data/com.termux/files/usr/bin/sh
-curl --capath ./intentially-invalid-path --cacert ~/bin/mpv-url-opener.pem \
+curl --capath ./intentionally-invalid-path --cacert ~/bin/mpv-url-opener.pem \
      -u device-username:device-password -d "url=$1" \
      --resolve app.localhost:8000:192.168.1.101 https://app.localhost:8000/mpv-open-url
 ' > ~/bin/termux-url-opener
