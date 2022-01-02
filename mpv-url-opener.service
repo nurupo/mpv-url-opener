@@ -3,7 +3,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/home/username/.local/share/mpv-url-opener
-ExecStart=/home/username/.local/share/mpv-url-opener/env/bin/python3 -u mpv-url-opener.py 192.168.1.101 8000 --ssl-cert cert.pem --ssl-key key.pem --config config.json
+ExecStart=/home/username/.local/share/mpv-url-opener/env/bin/python3 -u mpv-url-opener.py --ip-port 192.168.1.101:8000 --ssl-cert cert.pem --ssl-key key.pem --config config.json
 Restart=always
 KillMode=process
 SyslogIdentifier=mpv-url-opener

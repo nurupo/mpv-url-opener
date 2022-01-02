@@ -87,6 +87,9 @@ systemctl --user enable mpv-url-opener.service
 systemctl --user start mpv-url-opener.service
 ```
 
+Note that you can make the server listen on multiple IP addresses, even on addresses that doesn't yet exist (it sets `IP_FREEBIND`).
+Just specify more ip:port pairs to `--ip-port`, e.g. `--ip-port 192.168.1.101:8000 192.168.1.102:8000`.
+
 Check to see if the server is running properly:
 
 ```sh
