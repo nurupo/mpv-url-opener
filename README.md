@@ -4,21 +4,22 @@ A small https server that listens for requests to open YouTube URLs in mpv.
 
 ## Why
 
-I wanted an easy way to share videos from [NewPipe](https://newpipe.net) on my Android phone with [mpv](https://mpv.io/)+[youtube-dl](http://ytdl-org.github.io/youtube-dl/) on my Linux PC.
+I wanted an easy way to share videos from [NewPipe](https://newpipe.net) on my Android phone with [mpv](https://mpv.io/)+[youtube-dl](https://github.com/yt-dlp/yt-dlp) on my Linux PC.
 
 ## How
 
 ### Phone-side (client-side)
 
-While I could have gone all out and written an Android application that implements [the share API](https://developer.android.com/training/sharing/receive), so that I could share a video link with the app from NewPipe, and the app would send it over to the PC, it sounded like an overengineering to write an app whose entire purpose is to send a single HTTP POST request, a lot of an unnecessary complexity for something so simple.
+While I could have gone all out and written an Android application that implements [the share API](https://developer.android.com/training/sharing/receive), so that I could share a video link with the app from NewPipe, and the app would send it over to the PC, it sounded like an over-engineering to write an app whose entire purpose is to send a single HTTP POST request, a lot of an unnecessary complexity for something so simple.
 
-Instead I have decided on using [Termux](https://termux.com), which I already have installed and use often.
+Instead I decided on using [Termux](https://termux.com), which I already have installed and use often.
 Termux is an Android terminal emulator and Linux environment app.
 You can run bash and various command line programs in it, including `curl`!
 In addition, Termux [allows other apps to share URLs with it](https://wiki.termux.com/wiki/Intents_and_Hooks), which it then passes to a user-provided shell script as an argument.
-You probably already can see where I'm going with this.
+You probably can already see where I'm going with this.
 
-The way it works, you share a video URL in NewPipe with Termux, Termux executes our shell script with the URL as an argument, which runs `curl` to send a POST request containing the video URL as a payload to the PC. It all happens automatically after you share the link with Termux, it doesn't require any extra user input (though we could make the shell script interactive if we wanted to), and it brings you back to NewPipe immediately after running curl.
+The way it works, you share a video URL in NewPipe with Termux app, Termux executes our shell script with the URL as an argument, which runs `curl` to send a POST request containing the video URL as a payload to the PC.
+Everything happens automatically after you select Termux in the list of apps to share the video with, there is no extra input or interaction required and it all happens in a blink of an eye: Termux pops up, runs the `curl` command, and immediately disappears, bringing you back to NewPipe.
 
 Writing a single `curl` command is sure easier than writing an Android app!
 
@@ -140,21 +141,25 @@ Create `termux-url-opener`:
 
 ```sh
 echo '#!/data/data/com.termux/files/usr/bin/sh
-curl --capath ./intentionally-invalid-path --cacert ~/bin/mpv-url-opener.pem \
-     -u device-username:device-password -d "url=$1" \
-     --resolve app.localhost:8000:192.168.1.101 https://app.localhost:8000/mpv-open-url
+curl --capath ./intentionally-invalid-path \
+     --cacert ~/bin/mpv-url-opener.pem \
+     -u device-username:device-password \
+     -d "url=$1" \
+     --resolve app.localhost:8000:192.168.1.101 \
+     https://app.localhost:8000/mpv-open-url
 ' > ~/bin/termux-url-opener
 editor ~/bin/termux-url-opener
 chmod +x ~/bin/termux-url-opener
 ```
 
-Change the IP address and port to those of the server and change `device-username` and `device-password` to the ones you have used.
+Change the IP address and port to those of the server and change `device-username` and `device-password` to the ones you have set on the server.
 
 `--capath`, `--cacert` and `https://` make sure that curl refuses to connect to anything other than our server (SSL certificate authentication).
 
 `--resolve` tells curl to resolve `app.localhost` for port 8000 as `192.168.1.101`, which is needed for the certificate verification to work as our certificate is for `app.localhost`.
 
 If your server might be using a couple of different IPs, e.g. the server is running on your laptop that you take with you somewhere else, as long as you know the IPs beforehand, you could list them in `--resolve` with a comma, e.g. `--resolve app.localhost:8000:192.168.1.101,192.168.1.102,192.168.1.103`, from the most probable to the least, and also set `--connect-timeout` to some small value so that curl doesn't wait too long when trying to use the wrong IP, e.g. `--connect-timeout 0.2`.
+`curl` will try to connect to the IPs in the order they are listed.
 
 ## Security
 
@@ -163,14 +168,14 @@ While intended to run on a secure home LAN, I have added some security measures 
 - The server is HTTPS only, so the communication is SSL encrypted.
 - The server relies on Python providing secure SSL defaults, [which it does](https://docs.python.org/3/library/ssl.html#cipher-selection), as long as you keep python up-to-date enough.
 - Since it's intended for home LAN usage, the server uses a self-signed SSL certificate.
-- The server authenticates the client via username:password Basic HTTP Authentication, preventing unauthorized parties opening videos on your PC. Failed attempts are rate limited to 5/hour.
-- The client authenticates the server against the SSL certificate, preventing MTIM and sharing the username:password & the video URL with unintended parties in general.
+- The server authenticates the client via username:password Basic HTTP Authentication, preventing unauthorized parties from opening videos on your PC. Failed attempts are rate limited to 5/hour by the sender IP.
+- The client authenticates the server against the pre-downloaded SSL certificate file, preventing MITM and sharing the username:password, along with the video URL, with unintended parties in general.
 - The server validates that the input it receives from the client is exactly a YouTube URL, no more and no less, avoiding any command injections. Additionally, it executes the mpv binary directly, without any shell interpreter, which also helps protect against command injections.
 
 ## Running behind a proxy
 
 The server is a Flask app that uses Waitress WSGI server.
-Waitress was chosen because it's easy to set the socket options using it.
+Waitress was chosen because it's easy to set socket options using it.
 I don't run a proxy server on my PC, so I wrote the application with the idea that it won't be running behind a proxy and made it handle everything on it's own: SSL, Basic HTTP Authentication, etc.
 
 As such, running behind a proxy server is not supported, though it could be done with some minimal modifications.
