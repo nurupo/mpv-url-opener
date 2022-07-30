@@ -75,8 +75,8 @@ def config_hash_plaintext_passwords(config_path):
 def parse_args():
     parser = argparse.ArgumentParser(description='mpv url opener https server')
     parser.add_argument('--ip-port', required=True, nargs='+', help='IPv4:port address to listen on')
-    parser.add_argument('--ssl-cert', required=True, default='cert.pem', help='SSL/TLS public certificate file path')
-    parser.add_argument('--ssl-key', required=True, default='key.pem', help='SSL/TLS private key file path')
+    parser.add_argument('--ssl-cert', required=False, help='SSL/TLS public certificate file path')
+    parser.add_argument('--ssl-key', required=False, help='SSL/TLS private key file path')
     parser.add_argument('--config', required=True, default='config.json', help='Config file path')
     args = parser.parse_args()
 
@@ -115,10 +115,17 @@ if __name__ == '__main__':
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.setsockopt(socket.IPPROTO_IP, 15, 1) # IP_FREEBIND=15
         s.bind((ip, port))
-        s = ssl.wrap_socket(s, keyfile=key, certfile=cert, server_side=True)
+        if cert and key:
+            s = ssl.wrap_socket(s, keyfile=key, certfile=cert, server_side=True)
+        else:
+            print('No certificate and key found: Running in (insecure!) HTTP mode instead of HTTPS')
         sockets.append(s)
 
-    fix_waitress_ssl_accept_error()
-    print('Listening for requests on: {}'.format(', '.join([f'https://{ip}:{port}/mpv-open-url' for (ip, port) in ip_ports])))
-    waitress.serve(TransLogger(app), sockets=sockets, threads=1, url_scheme='https')
+    if cert and key:
+        fix_waitress_ssl_accept_error()
+        print('Listening for requests on: {}'.format(', '.join([f'https://{ip}:{port}/mpv-open-url' for (ip, port) in ip_ports])))
+        waitress.serve(TransLogger(app), sockets=sockets, threads=1, url_scheme='https')
+    else:
+        print('Listening for requests on: {}'.format(', '.join([f'http://{ip}:{port}/mpv-open-url' for (ip, port) in ip_ports])))
+        waitress.serve(TransLogger(app), sockets=sockets, threads=1, url_scheme='http')
     s.close()
