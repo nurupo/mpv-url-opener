@@ -1,4 +1,8 @@
 {
+    "ALLOWED_URL_REGEX_PATTERNS": [
+        "https://(www\\.)?(youtube\\.com/watch\\?v=|youtu\\.be/)[0-9a-zA-Z-_]{,16}",
+        "https://(www\\.)?twitch\\.tv/[0-9a-zA-Z-_]{4,25}"
+    ],
     "MPV_BIN_PATH": "/usr/bin/mpv",
     "MPV_EXTRA_ARGS": [],
     "HTTP_AUTH_DB": {

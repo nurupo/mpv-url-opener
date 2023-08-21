@@ -74,7 +74,7 @@ def verify_password(username, password):
 @auth.login_required
 def mpv_open_url():
     url = request.form.get('url', type=str)
-    if not re.fullmatch(r'https://(www\.youtube\.com/watch\?v=|youtu.be/)[0-9a-zA-Z-_]{,16}', url):
+    if not any(re.fullmatch(pattern, url) for pattern in config['ALLOWED_URL_REGEX_PATTERNS']):
         abort(400)
     logging.debug('{}: {} ({}) has requested {}'.format(request.host, auth.current_user(), request.remote_addr, url))
     logging.debug('Running "{}"'.format(' '.join([config['MPV_BIN_PATH'], url] + config['MPV_EXTRA_ARGS'])))
