@@ -31,6 +31,8 @@ On PC we run a simple https server app that listens for POST requests and opens 
 
 ### PC-side
 
+#### Linux
+
 Create a home directory for the server, e.g.:
 
 ```sh
@@ -108,6 +110,53 @@ openssl x509 -noout -sha256 -fingerprint \
 ```
 
 Take a note of it, will need it for later.
+
+#### Windows
+
+The instructions are the same as for Linux, just Windows-ified.
+
+[Install Python](https://www.python.org/downloads/) if you don't have it already.
+
+Get the OpenSSL binary from a trusted source or build it yourself.
+
+Create an `mpv-url-opener` folder under `%LocalAppData%`.
+Copy `mpv-url-opener.py` and `config.json` in there.
+
+Edit the config file for your needs.
+Change the default `device-username` and `device-password` placeholders to something else.
+The password would get replaced by its hash once you start the server.
+
+Generate an SSL cert in the `mpv-url-opener` folder with:
+
+```batch
+openssl.exe req -x509 -nodes -newkey rsa:4096 -days 3650 ^
+                -subj '/CN=app.localhost' -addext "subjectAltName=DNS:app.localhost" ^
+                -keyout key.pem ^
+                -out    cert.pem
+```
+
+This will create a self-signed certificate for `app.localhost` expiring in about 10 years and the corresponding private key.
+Keep `app.localhost` as it is, don't worry that doesn't resolve to anything, we will address that later.
+
+Create a python virtual environment for the server in the `mpv-url-opener` folder:
+
+```batch
+python.exe -m venv env
+env\Scripts\pip.exe install -r requirements.txt
+```
+
+Create a shortcut to `C:\path\to\mpv-url-opener\env\Scripts\pythonw.exe -u mpv-url-opener.py --ip-port 192.168.1.101:8000 --ssl-cert cert.pem --ssl-key key.pem --config config.json` with the path to `mpv-url-opener` folder as the working directory (the "Start in:" field) and drop it into `shell:startup` folder for the server to auto-start on Windows login. Edit the IP, port, etc. in the shortcut for your needs.
+
+Try to run the shortcut's `pythonw.exe` command manually in `cmd.exe` and fix any issues if it fails to start.
+
+Print the SSL certificate fingerprint:
+
+```sh
+openssl.exe x509 -noout -sha256 -fingerprint -in cert.pem
+```
+
+Take a note of it, will need it for later.
+
 
 ### Phone-side
 
